@@ -60,7 +60,7 @@ class _FormComponentState extends State<FormComponent> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
+            builder: (context) => HomeScreen(),
           ),
           (route) => false,
         );
@@ -94,7 +94,7 @@ class _FormComponentState extends State<FormComponent> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+          builder: (context) => HomeScreen(),
         ),
         (route) => false,
       );

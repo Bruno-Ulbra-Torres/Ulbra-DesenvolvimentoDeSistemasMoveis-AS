@@ -2,7 +2,9 @@ import 'package:avaliacao_as/screens/SingupScreen.dart';
 import 'package:avaliacao_as/widgets/FormComponent.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../screens/HomeScreen.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -14,29 +16,40 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void loginComGoogle() async {
-    // // Inicia o Google Sign-In
-    // final GoogleSignIn googleSignIn = GoogleSignIn();
-    // final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    //
-    // if (googleUser == null) {
-    //   // Login cancelado
-    //   return null;
-    // }
-    //
-    // // Obtém as credenciais do Google
-    // final GoogleSignInAuthentication googleAuth =
-    //     await googleUser.authentication;
-    //
-    // // Cria o credential do Firebase
-    // final OAuthCredential credential = GoogleAuthProvider.credential(
-    //   accessToken: googleAuth.accessToken,
-    //   idToken: googleAuth.idToken,
-    // );
-    //
-    // // Faz o login no Firebase
-    // UserCredential userCredential =
-    //     await FirebaseAuth.instance.signInWithCredential(credential);
+  void loginComGoogle(BuildContext context) async {
+    try {
+
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        print("User null");
+        return;
+      } else {
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+        if (userCredential.user != null) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(),
+            ),
+            (route) => false, // Remove todas as rotas anteriores
+          );
+        }
+      }
+    } catch (e) {
+      // Em caso de erro, imprima a mensagem de erro
+      print('Erro no login com Google: $e');
+    }
   }
 
   @override
@@ -57,7 +70,7 @@ class _LoginFormState extends State<LoginForm> {
                   Color(0xffffffff),
                 ),
               ),
-              onPressed: loginComGoogle,
+              onPressed: (){loginComGoogle(context);},
               child: Row(
                 children: [
                   Padding(
