@@ -2,6 +2,7 @@ import 'package:avaliacao_as/screens/LoginScreen.dart';
 import 'package:avaliacao_as/widgets/IconButtonWithText.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../widgets/list_builder.dart';
 
@@ -28,6 +29,9 @@ class HomeScreen extends StatelessWidget {
             text: "Logout",
             icon: Icons.logout,
             action: () async {
+              final GoogleSignIn googleSignIn = GoogleSignIn();
+
+              await googleSignIn.signOut();
               await FirebaseAuth.instance.signOut();
 
               Navigator.pushAndRemoveUntil(
