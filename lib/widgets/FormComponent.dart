@@ -1,9 +1,7 @@
-
 import 'package:avaliacao_as/screens/HomeScreen.dart';
 import 'package:avaliacao_as/widgets/style_components/CustomInputDecoration.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 
 class FormComponent extends StatefulWidget {
   final bool register;
@@ -36,16 +34,23 @@ class _FormComponentState extends State<FormComponent> {
       TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureRegisterPassword = true;
+  bool _obscureConfirmPassword = true;
 
   bool _isLoading = false;
   String? _errorMessage;
 
   // Methods
-  void loginUserWithEmailAndPassword() async {
+
+  void _loading() {
     setState(() {
       _errorMessage = null;
       _isLoading = true;
     });
+  }
+
+  void loginUserWithEmailAndPassword() async {
+    _loading();
     if (_loginKey.currentState!.validate()) {
       print("Email $_emailLoginController");
       print("Email $_passwordLoginController");
@@ -82,48 +87,52 @@ class _FormComponentState extends State<FormComponent> {
         print("Erro: ${e}");
       }
     }
+    _isLoading = false;
   }
 
   void registerUser() async {
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailRegisterController.text,
-        password: _passwordRegisterController.text,
-      );
+    _loading();
+    if (_registerKey.currentState!.validate()) {
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailRegisterController.text,
+          password: _passwordRegisterController.text,
+        );
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomeScreen(),
-        ),
-        (route) => false,
-      );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        print("Email já está em uso.");
-        setState(() {
-          _errorMessage = "Este email já está em uso.";
-        });
-      } else if (e.code == 'weak-password') {
-        print("Senha muito fraca.");
-        setState(() {
-          _errorMessage =
-              "A senha é muito fraca. Tente adicionar caracteres especiais.";
-        });
-      } else {
-        setState(() {
-          _errorMessage = "Um erro ocorreu";
-        });
-        print("Erro: ${e.message}");
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+          (route) => false,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          print("Email já está em uso.");
+          setState(() {
+            _errorMessage = "Este email já está em uso.";
+          });
+        } else if (e.code == 'weak-password') {
+          print("Senha muito fraca.");
+          setState(() {
+            _errorMessage =
+                "A senha é muito fraca. Ela deve ser maior que 6 dígitos";
+          });
+        } else {
+          setState(() {
+            _errorMessage = "Um erro ocorreu";
+          });
+          print("Erro: ${e.message}");
+        }
+      } on Exception catch (e) {
+        print(e);
       }
-    } on Exception catch (e) {
-      print(e);
     }
+    _isLoading = false;
   }
 
   String? validaEmail(String? value) {
     if (value == null || value.isEmpty) {
-      _isLoading = false;
       return 'Digite um email por favor!';
     } else {
       return null;
@@ -132,7 +141,6 @@ class _FormComponentState extends State<FormComponent> {
 
   String? validaSenha(String? value) {
     if (value == null || value.isEmpty) {
-      _isLoading = false;
       return 'Digite uma senha por favor!';
     } else {
       return null;
@@ -142,11 +150,6 @@ class _FormComponentState extends State<FormComponent> {
   // Build
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      _isLoading = false;
-      _errorMessage = null;
-    });
-
     if (widget.register) {
       return Form(
         key: _registerKey,
@@ -163,19 +166,8 @@ class _FormComponentState extends State<FormComponent> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     TextFormField(
-                      controller: _usernameRegisterController,
-                      validator: validaEmail,
-                      cursorColor: const Color(0xffEBB400),
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                      decoration: Custominputdecoration.build(
-                        label: const Text("Nome"),
-                      ),
-                    ),
-                    TextFormField(
                       controller: _emailRegisterController,
-                      validator: validaSenha,
+                      validator: validaEmail,
                       cursorColor: const Color(0xffEBB400),
                       style: const TextStyle(
                         color: Colors.white,
@@ -187,13 +179,29 @@ class _FormComponentState extends State<FormComponent> {
                     TextFormField(
                       controller: _passwordRegisterController,
                       validator: validaSenha,
+                      obscureText: _obscureRegisterPassword,
                       cursorColor: const Color(0xffEBB400),
                       style: const TextStyle(
                         color: Colors.white,
                       ),
                       decoration: Custominputdecoration.build(
                         label: const Text("Senha"),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureRegisterPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureRegisterPassword =
+                              !(_obscureRegisterPassword);
+                            });
+                          },
+                        ),
+
                       ),
+
                     ),
                     TextFormField(
                       controller: _confirmPasswordRegisterController,
@@ -207,17 +215,51 @@ class _FormComponentState extends State<FormComponent> {
                           return null;
                         }
                       },
+                      obscureText: _obscureConfirmPassword,
                       cursorColor: const Color(0xffEBB400),
                       style: const TextStyle(
                         color: Colors.white,
                       ),
                       decoration: Custominputdecoration.build(
                         label: const Text("Confirme a senha"),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword =
+                              !(_obscureConfirmPassword);
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
+            Center(
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: CircularProgressIndicator(
+                        color: Color(0xffEBB400),
+                      ),
+                    )
+                  : _errorMessage != null
+                      ? Center(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                            ),
+                          ),
+                        )
+                      : Container(),
             ),
             Padding(
               padding: const EdgeInsets.all(10),
@@ -226,25 +268,6 @@ class _FormComponentState extends State<FormComponent> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.all(40),
-                            child: CircularProgressIndicator(),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: SizedBox(
-                              height: 20,
-                              child: _errorMessage != null
-                                  ? Text(
-                                      _errorMessage!,
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                      ),
-                                    )
-                                  : Container(),
-                            ),
-                          ),
                     SizedBox(
                       width: 200,
                       height: 40,
